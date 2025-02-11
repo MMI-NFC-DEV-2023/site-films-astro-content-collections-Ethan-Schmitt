@@ -1,0 +1,18 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "@layouts/Layout.astro";
+const personne =  await getCollection("personne");
+---
+
+<Layout pagetitle="Liste des personnes">
+    <h1>Liste des personnes</h1>
+    <ul class="list-disc pl-5 space-y-2">
+        {personne.map((personne) => 
+            <li>
+                <a href={`/personne/${personne.id}`} class="text-blue-500 hover:underline">
+                    {personne.data.nom}
+                </a>
+            </li>
+        )}
+    </ul>
+</Layout>
