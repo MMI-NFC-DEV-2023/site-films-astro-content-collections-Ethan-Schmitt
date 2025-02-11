@@ -1,6 +1,6 @@
 
 import { glob } from "astro/loaders";
-import { defineCollection, z } from "astro:content";
+import { defineCollection, reference, z } from "astro:content";
 
 
 const personne = defineCollection({
@@ -11,7 +11,23 @@ const personne = defineCollection({
     dateNaissance: z.date(),
     dateDeces: z.date().optional(),
     nationalite: z.string(),
-}),
+    profession: z.array(z.enum(["acteur", "realisateur", "scenariste", "producteur", "compositeur"])).optional(),
+  }),
 });
 
-export const collections = { personne };
+const film = defineCollection({
+  loader: glob({ base: "src/data/films", pattern: "**/*.md" }),
+  schema: z.object({
+    titre: z.string(),
+    dateSortie: z.date(),
+    realisateur: reference("personnes").optional(),
+    scenariste: z.array(reference("personnes")).optional(),
+    roles: z
+      .array(z.object({ acteur: reference("personnes"), role: z.string() }))
+      .optional(),
+  }),
+});
+
+export const collections = { personne, film };
+
+

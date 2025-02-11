@@ -1,0 +1,71 @@
+---
+import Layout from "@layouts/Layout.astro";
+import { getEntry, getEntries, getCollection, render } from "astro:content";
+import { formatDate } from "src/helper";
+// 1. Génére un nouveau chemin pour chaque entrée de collection
+export async function getStaticPaths() {
+  const films = await getCollection("film");
+  return films.map((film) => ({
+    params: { id: film.id },
+    props: { film },
+  }));
+}
+// 2. Pour votre modèle, vous pouvez obtenir l'entrée directement à partir de la propriété
+const { film } = Astro.props;
+const { Content } = await render(film);
+
+const realisateur =
+  film.data.realisateur && (await getEntry(film.data.realisateur));
+
+const scenaristes =
+  film.data.scenariste && (await getEntries(film.data.scenariste));
+
+const roles =
+  film.data.role &&
+  (await Promise.all(
+    film.data.role.map(async ({ role, acteur }) => ({
+      role,
+      acteur: await getEntry(acteur),
+    }))
+  ));
+---
+
+<Layout pagetitle={`Fiche du film ${film.data.titre}`}>
+  <h1>{film.data.titre}</h1>
+  <p>Date de sortie : {formatDate(film.data.dateSortie)}</p>
+  {realisateur && <p>Réalisateur : {realisateur.data.nom}</p>}
+  {
+    scenaristes && (
+      <p>
+        Scénariste{scenaristes.length > 1 && <>s</>} :
+        {scenaristes
+          .map((s) => s.data.nom)
+          .join(", ")
+          .replace(/, ([^,]*)$/, " et $1")}
+      </p>
+    )
+  }
+
+  {
+    roles &&(
+      <>
+        <h2>Acteurs</h2>
+        <ul>
+          {roles.map(({ role, acteur }) => (
+            <li>
+              <strong>{role}</strong> : {acteur?.data?.nom}
+            </li>
+          ))}
+        </ul>
+      </>
+    )
+  }
+
+  <!-- <pre>
+    {JSON.stringify(roles, null, 2)}
+  </pre> -->
+
+  <div class="prose">
+    <Content />
+  </div>
+</Layout>
