@@ -22,7 +22,7 @@ const film = defineCollection({
     dateSortie: z.date(),
     realisateur: reference("personnes").optional(),
     scenariste: z.array(reference("personnes")).optional(),
-    roles: z
+    role: z
       .array(z.object({ acteur: reference("personnes"), role: z.string() }))
       .optional(),
   }),
